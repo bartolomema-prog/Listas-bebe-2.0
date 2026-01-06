@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useShoppingLists, ShoppingList } from '@/hooks/useShoppingLists';
@@ -10,7 +10,8 @@ import { CodeAccessForm } from '@/components/shopping/CodeAccessForm';
 import { ProductsManager } from '@/components/shopping/ProductsManager';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, ShoppingBag, Loader2, LogIn, Package, Download, Archive } from 'lucide-react';
+import { Plus, ShoppingBag, Loader2, LogIn, Package, Download, Archive, Search, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import logoKitaYPon from '@/assets/logo-kita-y-pon.png';
@@ -22,6 +23,19 @@ export default function Index() {
   const { toast } = useToast();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedList, setSelectedList] = useState<ShoppingList | null>(null);
+  const [listSearchQuery, setListSearchQuery] = useState('');
+
+  const filteredLists = useMemo(() => {
+    if (!listSearchQuery.trim()) return lists;
+    const query = listSearchQuery.toLowerCase().trim();
+    return lists.filter(list =>
+      (list.baby_name && list.baby_name.toLowerCase().includes(query)) ||
+      (list.name && list.name.toLowerCase().includes(query)) ||
+      (list.father_name && list.father_name.toLowerCase().includes(query)) ||
+      (list.mother_name && list.mother_name.toLowerCase().includes(query)) ||
+      (list.phone && list.phone.includes(query))
+    );
+  }, [lists, listSearchQuery]);
 
   // If user is logged in and viewing a list
   if (selectedList) {
@@ -40,6 +54,25 @@ export default function Index() {
         <Header />
 
         <main className="container mx-auto px-4 py-6 max-w-2xl">
+          {/* List Search Bar */}
+          <div className="relative mb-6">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar lista (bebé, padres, teléfono)..."
+              value={listSearchQuery}
+              onChange={(e) => setListSearchQuery(e.target.value)}
+              className="pl-10 pr-10"
+            />
+            {listSearchQuery && (
+              <button
+                onClick={() => setListSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
           <Tabs defaultValue="listas" className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="listas" className="flex items-center gap-2">
@@ -69,25 +102,18 @@ export default function Index() {
                 <div className="flex justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-              ) : lists.length === 0 ? (
-                <div className="space-y-6">
-                  <div className="text-center py-8">
-                    <ShoppingBag className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-                    <h3 className="text-lg font-medium mb-2">No tienes listas todavía</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Crea tu primera lista de compras para empezar
-                    </p>
-                    <Button onClick={() => setShowCreateDialog(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Crear Primera Lista
-                    </Button>
-                  </div>
-                  <CodeAccessForm />
+              ) : filteredLists.filter(l => !l.is_archived).length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                  <Search className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
+                  <p className="text-muted-foreground">No se encontraron listas con ese nombre</p>
+                  <Button variant="link" onClick={() => setListSearchQuery('')} className="mt-2 text-primary">
+                    Ver todas las listas
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-6">
                   <div className="space-y-3">
-                    {lists.filter(l => !l.is_archived).map(list => (
+                    {filteredLists.filter(l => !l.is_archived).map(list => (
                       <ListCard
                         key={list.id}
                         list={list}
@@ -126,11 +152,38 @@ export default function Index() {
                           if (itemsError) throw itemsError;
 
                           // Format CSV
-                          const headers = ['Lista', 'Producto', 'Precio', 'Marca', 'Modelo', 'Estado', 'Comprador', 'Teléfono Comprador', 'Fecha Compra', 'Recogido'];
+                          const headers = [
+                            'Lista',
+                            'Producto',
+                            'Precio',
+                            'Marca',
+                            'Modelo',
+                            'Estado',
+                            'Comprador',
+                            'Teléfono Comprador',
+                            'Fecha Compra',
+                            'Recogido',
+                            'Pagado',
+                            'Cantidad Pagada',
+                            'Reservado',
+                            'Visto (Verde)',
+                            'Color Estado',
+                            'Fecha Creación'
+                          ];
+
                           const rows = allItems.map(item => {
                             const list = allLists.find(l => l.id === item.list_id);
                             const status = item.is_purchased ? 'Comprado' : 'Pendiente';
                             const pickedUp = item.is_picked_up ? 'Sí' : 'No';
+                            const paid = item.is_paid ? 'Sí' : 'No';
+                            const reserved = item.is_reserved ? 'Sí' : 'No';
+                            const greenChecked = item.is_green_checked ? 'Sí' : 'No';
+
+                            // Map color status to text
+                            let colorText = 'Blanco';
+                            if (item.color_status === 1) colorText = 'Verde';
+                            if (item.color_status === 2) colorText = 'Amarillo';
+                            if (item.color_status === 3) colorText = 'Rojo';
 
                             return [
                               `"${list?.name || 'Desconocida'}"`,
@@ -142,7 +195,13 @@ export default function Index() {
                               `"${item.purchaser_name || ''}"`,
                               `"${item.purchaser_phone || ''}"`,
                               `"${item.purchase_date || ''}"`,
-                              pickedUp
+                              pickedUp,
+                              paid,
+                              item.amount_paid || 0,
+                              reserved,
+                              greenChecked,
+                              colorText,
+                              `"${item.created_at || ''}"`
                             ].join(',');
                           });
 
@@ -184,17 +243,19 @@ export default function Index() {
                 <div className="flex justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-              ) : lists.filter(l => l.is_archived).length === 0 ? (
-                <div className="text-center py-8">
-                  <Archive className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-                  <h3 className="text-lg font-medium mb-2">No hay listas archivadas</h3>
-                  <p className="text-muted-foreground">
-                    Las listas que archives aparecerán aquí
-                  </p>
+              ) : filteredLists.filter(l => l.is_archived).length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                  <Search className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
+                  <p className="text-muted-foreground">No se encontraron listas archivadas</p>
+                  {listSearchQuery && (
+                    <Button variant="link" onClick={() => setListSearchQuery('')} className="mt-2 text-primary">
+                      Limpiar búsqueda
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {lists.filter(l => l.is_archived).map(list => (
+                  {filteredLists.filter(l => l.is_archived).map(list => (
                     <ListCard
                       key={list.id}
                       list={list}

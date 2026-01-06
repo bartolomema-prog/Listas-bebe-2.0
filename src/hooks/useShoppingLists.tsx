@@ -370,5 +370,39 @@ export function useListItems(listId: string | null) {
   const total = items.reduce((sum, item) => sum + (item.is_purchased ? 0 : Number(item.price)), 0);
   const purchasedTotal = items.reduce((sum, item) => sum + (item.is_purchased ? Number(item.price) : 0), 0);
 
-  return { items, loading, addItem, updateItem, togglePurchased, toggleReserved, toggleColorStatus, deleteItem, total, purchasedTotal, refetch: fetchItems };
+  const bulkTogglePurchased = async (itemIds: string[], isPurchased: boolean, purchaserInfo?: PurchaserInfo) => {
+    const updateData: Record<string, unknown> = { is_purchased: isPurchased };
+
+    if (isPurchased && purchaserInfo) {
+      updateData.purchaser_name = purchaserInfo.purchaser_name;
+      updateData.purchaser_phone = purchaserInfo.purchaser_phone;
+      updateData.purchase_date = purchaserInfo.purchase_date;
+      updateData.is_picked_up = purchaserInfo.is_picked_up;
+      updateData.is_paid = purchaserInfo.is_paid;
+      updateData.amount_paid = purchaserInfo.amount_paid !== undefined ? purchaserInfo.amount_paid : null;
+      updateData.is_reserved = false;
+    } else if (!isPurchased) {
+      updateData.purchaser_name = null;
+      updateData.purchaser_phone = null;
+      updateData.purchase_date = null;
+      updateData.is_picked_up = false;
+      updateData.is_paid = false;
+      updateData.amount_paid = null;
+    }
+
+    const { error } = await supabase
+      .from('list_items')
+      .update(updateData)
+      .in('id', itemIds);
+
+    if (error) {
+      toast({ title: 'Error', description: 'No se pudieron actualizar los productos', variant: 'destructive' });
+      return false;
+    } else {
+      toast({ title: 'Productos actualizados', description: `${itemIds.length} productos actualizados con éxito` });
+      return true;
+    }
+  };
+
+  return { items, loading, addItem, updateItem, togglePurchased, toggleReserved, toggleColorStatus, bulkTogglePurchased, deleteItem, total, purchasedTotal, refetch: fetchItems };
 }

@@ -66,7 +66,7 @@ export function ListCard({ list, onSelect, onDelete, onArchive }: ListCardProps)
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

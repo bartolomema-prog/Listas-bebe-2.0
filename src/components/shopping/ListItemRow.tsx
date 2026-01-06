@@ -26,15 +26,34 @@ interface ListItemRowProps {
   onUpdate: (itemId: string, data: { name: string, price: number, brand?: string, model?: string, purchaser_name?: string | null, purchaser_phone?: string | null, purchase_date?: string | null, is_picked_up?: boolean, is_reserved?: boolean, is_paid?: boolean, amount_paid?: number | null }) => Promise<void>;
   onDelete: (itemId: string) => void;
   showPrivateInfo?: boolean;
+  isBulkMode?: boolean;
+  isSelected?: boolean;
+  onSelect?: (selected: boolean) => void;
 }
 
-export function ListItemRow({ item, onToggle, onToggleReserved, onToggleColorStatus, onUpdate, onDelete, showPrivateInfo = true }: ListItemRowProps) {
+export function ListItemRow({
+  item,
+  onToggle,
+  onToggleReserved,
+  onToggleColorStatus,
+  onUpdate,
+  onDelete,
+  showPrivateInfo = true,
+  isBulkMode = false,
+  isSelected = false,
+  onSelect
+}: ListItemRowProps) {
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const hasBrandOrModel = item.brand || item.model;
   const hasPurchaserInfo = item.purchaser_name || item.purchaser_phone || item.purchase_date;
 
   const handlePurchaseClick = (checked: boolean) => {
+    if (isBulkMode && onSelect) {
+      onSelect(checked);
+      return;
+    }
+
     if (checked) {
       setShowPurchaseDialog(true);
     } else {
@@ -90,9 +109,12 @@ export function ListItemRow({ item, onToggle, onToggleReserved, onToggleColorSta
 
         {/* Purchased checkbox */}
         <Checkbox
-          checked={item.is_purchased}
+          checked={isBulkMode ? isSelected : item.is_purchased}
           onCheckedChange={(checked) => handlePurchaseClick(checked as boolean)}
-          className="h-5 w-5 mt-0.5"
+          className={cn(
+            "h-5 w-5 mt-0.5 transition-all duration-300",
+            isBulkMode && isSelected && "ring-2 ring-primary ring-offset-2"
+          )}
         />
 
         <div className="flex-1 min-w-0">

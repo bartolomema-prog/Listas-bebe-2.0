@@ -4,9 +4,11 @@ import { ShoppingList, useListItems } from '@/hooks/useShoppingLists';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, ShoppingBasket, Loader2, Phone, User, Search } from 'lucide-react';
+import { ArrowLeft, ShoppingBasket, Loader2, Phone, User, Search, CheckSquare, X } from 'lucide-react';
 import { AddItemForm } from './AddItemForm';
 import { ListItemRow } from './ListItemRow';
+import { PurchaseInfoDialog } from './PurchaseInfoDialog';
+import { PurchaserInfo } from '@/hooks/useShoppingLists';
 
 interface ListViewProps {
   list: ShoppingList;
@@ -15,8 +17,10 @@ interface ListViewProps {
 
 export function ListView({ list, onBack }: ListViewProps) {
   const { user } = useAuth();
-  const { items, loading, addItem, updateItem, togglePurchased, toggleReserved, toggleColorStatus, deleteItem, total, purchasedTotal } = useListItems(list.id);
+  const { items, loading, addItem, updateItem, togglePurchased, toggleReserved, toggleColorStatus, bulkTogglePurchased, deleteItem, total, purchasedTotal } = useListItems(list.id);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showBulkPurchaseDialog, setShowBulkPurchaseDialog] = useState(false);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return items;
@@ -27,6 +31,22 @@ export function ListView({ list, onBack }: ListViewProps) {
       (item.purchaser_phone && item.purchaser_phone.includes(query))
     );
   }, [items, searchQuery]);
+
+  const handleSelect = (id: string, selected: boolean) => {
+    if (selected) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(i => i !== id));
+    }
+  };
+
+  const handleBulkPurchaseConfirm = async (info: PurchaserInfo) => {
+    const success = await bulkTogglePurchased(selectedIds, true, info);
+    if (success) {
+      setSelectedIds([]);
+      setShowBulkPurchaseDialog(false);
+    }
+  };
 
   const pendingItems = filteredItems.filter(item => !item.is_purchased);
   const purchasedItems = filteredItems
@@ -82,6 +102,17 @@ export function ListView({ list, onBack }: ListViewProps) {
                 </div>
               )}
             </div>
+            {selectedIds.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedIds([])}
+                className="gap-2 shrink-0 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+                <span className="hidden sm:inline">Limpiar ({selectedIds.length})</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -138,6 +169,9 @@ export function ListView({ list, onBack }: ListViewProps) {
                       onToggleColorStatus={toggleColorStatus}
                       onUpdate={updateItem}
                       onDelete={deleteItem}
+                      isBulkMode={true}
+                      isSelected={selectedIds.includes(item.id)}
+                      onSelect={(selected) => handleSelect(item.id, selected)}
                     />
                   ))}
                 </div>
@@ -166,6 +200,8 @@ export function ListView({ list, onBack }: ListViewProps) {
                       onToggleColorStatus={toggleColorStatus}
                       onUpdate={updateItem}
                       onDelete={deleteItem}
+                      isBulkMode={false}
+                      isSelected={false}
                     />
                   ))}
                 </div>
@@ -186,6 +222,41 @@ export function ListView({ list, onBack }: ListViewProps) {
           </div>
         )}
       </main>
+
+      {/* Bulk Action Bar */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <Card className="shadow-2xl border-primary/20 bg-background/95 backdrop-blur-sm overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex items-center gap-4 px-4 py-3 min-w-[300px]">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">
+                    {selectedIds.length} seleccionado{selectedIds.length > 1 ? 's' : ''}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Listos para reservar</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setSelectedIds([])} className="h-9">
+                    <X className="h-4 w-4 mr-1" />
+                    Limpiar
+                  </Button>
+                  <Button size="sm" onClick={() => setShowBulkPurchaseDialog(true)} className="h-9 shadow-lg shadow-primary/20">
+                    <CheckSquare className="h-4 w-4 mr-1.5" />
+                    Reservar ahora
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <PurchaseInfoDialog
+        open={showBulkPurchaseDialog}
+        onOpenChange={setShowBulkPurchaseDialog}
+        onConfirm={handleBulkPurchaseConfirm}
+        itemName={`${selectedIds.length} productos seleccionados`}
+      />
     </div>
   );
 }
