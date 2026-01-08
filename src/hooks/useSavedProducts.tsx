@@ -45,16 +45,13 @@ export function useSavedProducts() {
 
     const { error } = await supabase
       .from('saved_products')
-      .upsert(
-        { 
-          user_id: user.id, 
-          name: name.trim(), 
-          default_price: price,
-          brand: brand?.trim() || null,
-          model: model?.trim() || null
-        },
-        { onConflict: 'user_id,name' }
-      );
+      .insert({
+        user_id: user.id,
+        name: name.trim(),
+        default_price: price,
+        brand: brand?.trim() || null,
+        model: model?.trim() || null
+      });
 
     if (!error) {
       fetchProducts();
@@ -66,8 +63,8 @@ export function useSavedProducts() {
 
     const { error } = await supabase
       .from('saved_products')
-      .update({ 
-        name: name.trim(), 
+      .update({
+        name: name.trim(),
         default_price: price,
         brand: brand?.trim() || null,
         model: model?.trim() || null
@@ -97,7 +94,7 @@ export function useSavedProducts() {
   const searchProducts = (query: string): SavedProduct[] => {
     if (!query.trim()) return [];
     const lowerQuery = query.toLowerCase();
-    return products.filter(p => 
+    return products.filter(p =>
       p.name.toLowerCase().includes(lowerQuery) ||
       (p.brand && p.brand.toLowerCase().includes(lowerQuery)) ||
       (p.model && p.model.toLowerCase().includes(lowerQuery))
