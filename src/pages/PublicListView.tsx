@@ -150,13 +150,6 @@ export default function PublicListView() {
     </div>}
 
     <main className="container mx-auto px-4 py-6 max-w-2xl shadow-none opacity-100">
-      style={{
-    backgroundImage: 'url("public/corazones.png")', // Cambia por el nombre de tu archivo
-    backgroundSize: 'cover',                 // Cubre toda la pantalla
-    backgroundPosition: 'center',            // Centra la imagen
-    backgroundAttachment: 'fixed',           // El fondo se queda quieto al hacer scroll
-    backgroundRepeat: 'no-repeat'
-  }}
       {items.length === 0 ? <div className="text-center py-12">
         <ShoppingBasket className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
         <p className="text-muted-foreground">No hay productos en esta lista</p>
