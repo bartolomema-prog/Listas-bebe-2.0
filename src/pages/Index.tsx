@@ -8,9 +8,11 @@ import { CreateListDialog } from '@/components/shopping/CreateListDialog';
 import { ListView } from '@/components/shopping/ListView';
 import { CodeAccessForm } from '@/components/shopping/CodeAccessForm';
 import { ProductsManager } from '@/components/shopping/ProductsManager';
+import { OrderManager } from '@/components/shopping/OrderManager';
+
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, ShoppingBag, Loader2, LogIn, Package, Download, Archive, Search, X } from 'lucide-react';
+import { Plus, ShoppingBag, Loader2, LogIn, Package, Download, Archive, Search, X, ShoppingCart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -74,7 +76,7 @@ export default function Index() {
           </div>
 
           <Tabs defaultValue="listas" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="listas" className="flex items-center gap-2">
                 <ShoppingBag className="h-4 w-4" />
                 Listas
@@ -82,6 +84,10 @@ export default function Index() {
               <TabsTrigger value="archivadas" className="flex items-center gap-2">
                 <Archive className="h-4 w-4" />
                 Archivadas
+              </TabsTrigger>
+              <TabsTrigger value="pedir" className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                Pedir
               </TabsTrigger>
               <TabsTrigger value="articulos" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
@@ -171,7 +177,7 @@ export default function Index() {
                             'Fecha Creación'
                           ];
 
-                          const rows = allItems.map(item => {
+                          const rows = allItems.map((item: any) => {
                             const list = allLists.find(l => l.id === item.list_id);
                             const status = item.is_purchased ? 'Comprado' : 'Pendiente';
                             const pickedUp = item.is_picked_up ? 'Sí' : 'No';
@@ -266,6 +272,10 @@ export default function Index() {
                   ))}
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="pedir">
+              <OrderManager />
             </TabsContent>
 
             <TabsContent value="articulos">

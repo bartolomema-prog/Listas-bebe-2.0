@@ -118,21 +118,74 @@ export function ListItemRow({
         />
 
         <div className="flex-1 min-w-0">
-          <span
-            className={cn(
-              "block truncate transition-all",
-              item.is_purchased && item.is_paid && !item.is_picked_up && "line-through text-muted-foreground",
-              item.is_purchased && !item.is_paid && "text-yellow-600 font-medium",
-              item.is_purchased && item.is_picked_up && "text-red-600 font-medium"
-            )}
-          >
-            {item.name}
-          </span>
-          {showPrivateInfo && hasBrandOrModel && (
-            <span className="text-xs text-muted-foreground block truncate">
-              {[item.brand, item.model].filter(Boolean).join(' - ')}
-            </span>
-          )}
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-x-3">
+            <div className="flex-1 min-w-0">
+              <span
+                className={cn(
+                  "block break-words text-sm transition-all",
+                  item.is_purchased && item.is_paid && !item.is_picked_up && "line-through text-muted-foreground",
+                  item.is_purchased && !item.is_paid && "text-yellow-600 font-medium",
+                  item.is_purchased && item.is_picked_up && "text-red-600 font-medium"
+                )}
+              >
+                {item.name}
+              </span>
+              {showPrivateInfo && hasBrandOrModel && (
+                <span className="text-xs text-muted-foreground block">
+                  {[item.brand, item.model].filter(Boolean).join(' - ')}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between mt-2 md:mt-0 md:ml-auto gap-3 shrink-0">
+              <span
+                className={cn(
+                  "text-sm font-medium tabular-nums",
+                  item.is_purchased ? "text-muted-foreground" : "text-foreground"
+                )}
+              >
+                {Number(item.price).toFixed(2)} €
+              </span>
+
+              <div className="flex shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-7 opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary mt-0.5"
+                  onClick={() => setShowEditDialog(true)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-7 opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive mt-0.5"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción eliminará el producto "{item.name}" de la lista permanentemente.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => onDelete(item.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Eliminar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          </div>
+
           {showPrivateInfo && (
             <div className="flex flex-wrap gap-1.5 mt-1">
               {item.is_purchased && !item.is_paid && (
@@ -167,51 +220,6 @@ export function ListItemRow({
           )}
         </div>
 
-        <span
-          className={cn(
-            "text-sm font-medium tabular-nums mt-0.5 ml-auto shrink-0 pr-1",
-            item.is_purchased ? "text-muted-foreground" : "text-foreground"
-          )}
-        >
-          {Number(item.price).toFixed(2)} €
-        </span>
-
-        <div className="flex shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-7 opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary mt-0.5"
-            onClick={() => setShowEditDialog(true)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-7 opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive mt-0.5"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta acción eliminará el producto "{item.name}" de la lista permanentemente.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => onDelete(item.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Eliminar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
       </div>
 
       <PurchaseInfoDialog

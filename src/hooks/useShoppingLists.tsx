@@ -41,6 +41,7 @@ export interface ListItem {
   purchase_date: string | null;
   amount_paid: number | null;
   color_status: number;
+  is_ordered: boolean;
   created_at: string;
   updated_at: string;
 }
