@@ -1,7 +1,7 @@
 import { ShoppingList } from '@/hooks/useShoppingLists';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Trash2, MoreVertical, Copy, Check, Archive, RotateCcw } from 'lucide-react';
+import { ChevronRight, Pencil, MoreVertical, Copy, Check, Archive, RotateCcw } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,11 +14,11 @@ import { useToast } from '@/hooks/use-toast';
 interface ListCardProps {
   list: ShoppingList;
   onSelect: (list: ShoppingList) => void;
-  onDelete: (listId: string) => void;
+  onEdit: (list: ShoppingList) => void;
   onArchive?: (listId: string, isArchived: boolean) => void;
 }
 
-export function ListCard({ list, onSelect, onDelete, onArchive }: ListCardProps) {
+export function ListCard({ list, onSelect, onEdit, onArchive }: ListCardProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
@@ -94,12 +94,11 @@ export function ListCard({ list, onSelect, onDelete, onArchive }: ListCardProps)
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(list.id);
+                  onEdit(list);
                 }}
-                className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Eliminar
+                <Pencil className="h-4 w-4 mr-2" />
+                Editar
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

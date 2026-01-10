@@ -68,9 +68,14 @@ export function ListItemRow({
   };
 
   const handleStatusClick = () => {
-    // Cycle through 4 states: 0 (white) -> 1 (green) -> 2 (yellow) -> 3 (red) -> 0
+    // Cycle through 4 states: 0 (white) -> 2 (yellow) -> 1 (green) -> 3 (red) -> 0
     const currentStatus = item.color_status || 0;
-    const nextStatus = (currentStatus + 1) % 4;
+    let nextStatus = 0;
+    if (currentStatus === 0) nextStatus = 2;
+    else if (currentStatus === 2) nextStatus = 1;
+    else if (currentStatus === 1) nextStatus = 3;
+    else nextStatus = 0;
+
     onToggleColorStatus(item.id, nextStatus);
   };
 

@@ -222,12 +222,12 @@ export default function PublicListView() {
             <h3 className="text-sm font-medium text-muted-foreground mb-3">Leyenda de colores</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded border border-green-500 bg-green-500 flex-shrink-0" />
-                <span>Disponible en tienda</span>
-              </div>
-              <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded border border-yellow-500 bg-yellow-500 flex-shrink-0" />
                 <span>Pedido, esperando recibir</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded border border-green-500 bg-green-500 flex-shrink-0" />
+                <span>Disponible en tienda</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded border border-red-500 bg-red-500 flex-shrink-0" />

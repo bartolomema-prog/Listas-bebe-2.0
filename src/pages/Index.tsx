@@ -5,6 +5,7 @@ import { useShoppingLists, ShoppingList } from '@/hooks/useShoppingLists';
 import { Header } from '@/components/shopping/Header';
 import { ListCard } from '@/components/shopping/ListCard';
 import { CreateListDialog } from '@/components/shopping/CreateListDialog';
+import { EditListDialog } from '@/components/shopping/EditListDialog';
 import { ListView } from '@/components/shopping/ListView';
 import { CodeAccessForm } from '@/components/shopping/CodeAccessForm';
 import { ProductsManager } from '@/components/shopping/ProductsManager';
@@ -21,9 +22,11 @@ import logoKitaYPon from '@/assets/logo-kita-y-pon.png';
 export default function Index() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { lists, loading: listsLoading, createList, deleteList, toggleArchiveList } = useShoppingLists();
+  const { lists, loading: listsLoading, createList, updateList, toggleArchiveList } = useShoppingLists();
   const { toast } = useToast();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [listToEdit, setListToEdit] = useState<ShoppingList | null>(null);
   const [selectedList, setSelectedList] = useState<ShoppingList | null>(null);
   const [listSearchQuery, setListSearchQuery] = useState('');
 
@@ -124,7 +127,10 @@ export default function Index() {
                         key={list.id}
                         list={list}
                         onSelect={setSelectedList}
-                        onDelete={deleteList}
+                        onEdit={(list) => {
+                          setListToEdit(list);
+                          setShowEditDialog(true);
+                        }}
                         onArchive={toggleArchiveList}
                       />
                     ))}
@@ -266,7 +272,10 @@ export default function Index() {
                       key={list.id}
                       list={list}
                       onSelect={setSelectedList}
-                      onDelete={deleteList}
+                      onEdit={(list) => {
+                        setListToEdit(list);
+                        setShowEditDialog(true);
+                      }}
                       onArchive={toggleArchiveList}
                     />
                   ))}
@@ -288,6 +297,13 @@ export default function Index() {
           open={showCreateDialog}
           onOpenChange={setShowCreateDialog}
           onCreateList={createList}
+        />
+
+        <EditListDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          list={listToEdit}
+          onUpdateList={updateList}
         />
       </div>
     );

@@ -49,7 +49,13 @@ export function OrderManager() {
     }, []);
 
     const handleToggleColorStatus = async (itemId: string, currentStatus: number) => {
-        const nextStatus = (currentStatus + 1) % 4;
+        // Cycle: 0 -> 2 -> 1 -> 3 -> 0
+        let nextStatus = 0;
+        if (currentStatus === 0) nextStatus = 2;
+        else if (currentStatus === 2) nextStatus = 1;
+        else if (currentStatus === 1) nextStatus = 3;
+        else nextStatus = 0;
+
         try {
             const { error } = await supabase
                 .from('list_items')

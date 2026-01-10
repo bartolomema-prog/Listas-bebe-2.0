@@ -129,13 +129,42 @@ export function useShoppingLists() {
   const updateListName = async (listId: string, name: string) => {
     const { error } = await supabase
       .from('shopping_lists')
-      .update({ name })
+      .update({ name, baby_name: name })
       .eq('id', listId);
 
     if (error) {
       toast({ title: 'Error', description: 'No se pudo actualizar', variant: 'destructive' });
     } else {
-      setLists(prev => prev.map(l => l.id === listId ? { ...l, name } : l));
+      setLists(prev => prev.map(l => l.id === listId ? { ...l, name, baby_name: name } : l));
+    }
+  };
+
+  const updateList = async (listId: string, data: CreateListData) => {
+    const { error } = await supabase
+      .from('shopping_lists')
+      .update({
+        name: data.babyName,
+        baby_name: data.babyName,
+        father_name: data.fatherName,
+        mother_name: data.motherName,
+        phone: data.phone
+      })
+      .eq('id', listId);
+
+    if (error) {
+      toast({ title: 'Error', description: 'No se pudo actualizar la lista', variant: 'destructive' });
+      return false;
+    } else {
+      setLists(prev => prev.map(l => l.id === listId ? {
+        ...l,
+        name: data.babyName,
+        baby_name: data.babyName,
+        father_name: data.fatherName,
+        mother_name: data.motherName,
+        phone: data.phone
+      } : l));
+      toast({ title: 'Lista actualizada' });
+      return true;
     }
   };
 
@@ -156,7 +185,7 @@ export function useShoppingLists() {
     }
   };
 
-  return { lists, loading, createList, deleteList, updateListName, toggleArchiveList, refetch: fetchLists };
+  return { lists, loading, createList, deleteList, updateListName, updateList, toggleArchiveList, refetch: fetchLists };
 }
 
 // UpdateItemData interface
